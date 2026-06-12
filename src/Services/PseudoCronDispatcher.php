@@ -54,16 +54,14 @@ class PseudoCronDispatcher
 
   private function dispatchAfterResponse(): void
   {
-    if (config('queue.default') === 'sync') {
-      SendDiagnosticsJob::dispatchSync();
-
-      return;
-    }
-
-    try {
-      SendDiagnosticsJob::dispatchAfterResponse();
-    } catch (\Throwable $e) {
-      SendDiagnosticsJob::dispatch();
-    }
+    app()->terminating(function () {
+      try {
+        SendDiagnosticsJob::dispatchSync();
+      } catch (\Throwable $e) {
+        Log::debug('quickweb/system: pseudo-cron after-response dispatch failed', [
+          'message' => $e->getMessage(),
+        ]);
+      }
+    });
   }
 }

@@ -17,7 +17,7 @@ use Quickweb\System\Services\PseudoCronDispatcher;
 use Quickweb\System\Services\ScheduleEvaluator;
 use Quickweb\System\Services\SystemManager;
 use Quickweb\System\Support\FileStateStore;
-use Quickweb\System\Support\NullSettingResolver;
+use Quickweb\System\Support\HostSettingResolver;
 
 class SystemServiceProvider extends ServiceProvider
 {
@@ -31,8 +31,8 @@ class SystemServiceProvider extends ServiceProvider
       return new FileStateStore($app->make(Filesystem::class), $path);
     });
 
-    $this->app->singleton(SettingResolverInterface::class, function () {
-      return new NullSettingResolver();
+    $this->app->singleton(SettingResolverInterface::class, function ($app) {
+      return $app->make(HostSettingResolver::class);
     });
 
     $this->app->singleton(ScheduleEvaluator::class, function ($app) {
@@ -127,24 +127,29 @@ class SystemServiceProvider extends ServiceProvider
       return;
     }
 
-    $group = (string) config('system.pseudo_cron.middleware_group', 'web');
-    $router = $this->app['router'];
+    $groups = config('system.pseudo_cron.middleware_groups');
 
-    if (method_exists($router, 'pushMiddlewareToGroup')) {
-      $router->pushMiddlewareToGroup($group, TriggerDiagnosticsMiddleware::class);
-
-      return;
+    if (!is_array($groups) || $groups === []) {
+      $groups = [(string) config('system.pseudo_cron.middleware_group', 'web')];
     }
 
-    $this->app->booted(function () use ($group) {
+    $this->app->booted(function () use ($groups) {
       if (!$this->app->bound(Kernel::class)) {
         return;
       }
 
       $kernel = $this->app->make(Kernel::class);
 
-      if (method_exists($kernel, 'appendMiddlewareToGroup')) {
-        $kernel->appendMiddlewareToGroup($group, TriggerDiagnosticsMiddleware::class);
+      if (!method_exists($kernel, 'appendMiddlewareToGroup')) {
+        return;
+      }
+
+      foreach ($groups as $group) {
+        try {
+          $kernel->appendMiddlewareToGroup($group, TriggerDiagnosticsMiddleware::class);
+        } catch (\InvalidArgumentException $e) {
+          continue;
+        }
       }
     });
   }

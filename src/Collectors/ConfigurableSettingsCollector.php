@@ -5,6 +5,7 @@ namespace Quickweb\System\Collectors;
 use Quickweb\System\Contracts\DataCollectorInterface;
 use Quickweb\System\Contracts\SettingResolverInterface;
 use Quickweb\System\Contracts\ValueResolverInterface;
+use Quickweb\System\Support\SettingValue;
 
 class ConfigurableSettingsCollector implements DataCollectorInterface
 {
@@ -42,6 +43,7 @@ class ConfigurableSettingsCollector implements DataCollectorInterface
       }
 
       $value = $this->settings->get($settingKey);
+      $value = $this->normalizeMappedValue($dotPath, $value);
       $this->assignNested($dotPath, $value, $administration, $store);
     }
 
@@ -86,17 +88,30 @@ class ConfigurableSettingsCollector implements DataCollectorInterface
 
   private function resolveStoreLabels(array $store): array
   {
-    if (isset($store['country_id'])) {
+    if (array_key_exists('country_id', $store)) {
       $store['country'] = $this->resolveValue('country_id', $store['country_id']);
       unset($store['country_id']);
     }
 
-    if (isset($store['state_id'])) {
+    if (array_key_exists('state_id', $store)) {
       $store['state'] = $this->resolveValue('state_id', $store['state_id']);
       unset($store['state_id']);
     }
 
     return $store;
+  }
+
+  /**
+   * @param mixed $value
+   * @return mixed
+   */
+  private function normalizeMappedValue(string $dotPath, $value)
+  {
+    if (in_array($dotPath, ['store.country_id', 'store.state_id'], true)) {
+      return $value;
+    }
+
+    return SettingValue::unwrapScalar($value);
   }
 
   /**
@@ -111,7 +126,7 @@ class ConfigurableSettingsCollector implements DataCollectorInterface
     $resolver = $this->valueResolvers[$resolverKey] ?? null;
 
     if ($resolver === null) {
-      return is_scalar($value) ? (string) $value : null;
+      return SettingValue::resolveLabel($value);
     }
 
     if (is_callable($resolver)) {

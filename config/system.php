@@ -64,10 +64,11 @@ return [
   */
   'settings_map' => [
     'administration.email' => 'admin_email',
+  // Quickweb Ecom stores district in `ecom_store_city` and province in `ecom_store_state_id`.
     'store.country_id' => 'ecom_store_country_id',
     'store.state_id' => 'ecom_store_state_id',
-    'store.city' => 'ecom_store_city',
-    'store.district' => null,
+    'store.city' => null,
+    'store.district' => 'ecom_store_city',
     'store.address_line_1' => 'ecom_store_address_1',
     'store.address_line_2' => 'ecom_store_address_2',
     'store.zipcode' => 'ecom_store_address_zip_code',
@@ -81,8 +82,8 @@ return [
   |--------------------------------------------------------------------------
   */
   'value_resolvers' => [
-    // 'country_id' => null,
-    // 'state_id' => null,
+    'country_id' => [Quickweb\System\Support\QuickwebValueResolvers::class, 'resolveCountry'],
+    'state_id' => [Quickweb\System\Support\QuickwebValueResolvers::class, 'resolveState'],
   ],
 
   /*
@@ -117,6 +118,10 @@ return [
     'route_prefix' => '_system',
     'route_name' => 'system.diagnostics.run',
     'middleware_group' => 'web',
+    'middleware_groups' => array_values(array_filter(array_map('trim', explode(
+      ',',
+      (string) env('SYSTEM_DIAGNOSTICS_MIDDLEWARE_GROUPS', 'web,api')
+    )))),
     // Check on 1/N web requests (higher = less frequent checks)
     'sample_rate' => (int) env('SYSTEM_DIAGNOSTICS_SAMPLE_RATE', 50),
     // Spawn background curl request to internal trigger route
