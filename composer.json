@@ -1,6 +1,6 @@
 {
     "name": "quickweb/system",
-    "version": "1.0.0",
+    "version": "0.0.1",
     "description": "Core system package for Quickweb Laravel applications.",
     "keywords": [
         "laravel",
@@ -23,6 +23,7 @@
         "illuminate/support": "^8.0|^9.0|^10.0|^11.0"
     },
     "require-dev": {
+        "guzzlehttp/guzzle": "^6.5.5|^7.0.1",
         "orchestra/testbench": "^6.0|^7.0|^8.0|^9.0",
         "phpunit/phpunit": "^9.5|^10.0"
     },

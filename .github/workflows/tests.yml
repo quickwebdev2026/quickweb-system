@@ -31,6 +31,9 @@ jobs:
         run: |
           composer require "illuminate/console:${{ matrix.laravel }}" "illuminate/contracts:${{ matrix.laravel }}" "illuminate/http:${{ matrix.laravel }}" "illuminate/support:${{ matrix.laravel }}" --no-interaction --no-update
           composer require --dev "orchestra/testbench:$( [ '${{ matrix.laravel }}' = '8.*' ] && echo '^6.0' || echo '^9.0' )" --no-interaction --no-update
+          # Composer 2.9+ blocks laravel/framework (pulled in by testbench) when advisories exist.
+          # Allow install in CI — this is a dev-only compatibility test, not a production deploy.
+          composer config --json policy.advisories.ignore '{"laravel/framework":"Dev dependency via testbench for CI compatibility tests only"}'
           composer update --prefer-dist --no-interaction
 
       - name: Execute tests
