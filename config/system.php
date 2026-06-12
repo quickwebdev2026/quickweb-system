@@ -105,7 +105,7 @@ return [
   */
   'state' => [
     'driver' => 'file',
-    'path' => 'system/state.json',
+    'path' => 'ecom/system/state.json',
   ],
 
   /*

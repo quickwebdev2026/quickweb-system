@@ -26,7 +26,7 @@ class SystemServiceProvider extends ServiceProvider
     $this->mergeConfigFrom(__DIR__ . '/../config/system.php', 'system');
 
     $this->app->singleton(StateStoreInterface::class, function ($app) {
-      $path = storage_path('app/' . ltrim(config('system.state.path', 'system/state.json'), '/'));
+      $path = storage_path('app/' . ltrim(config('system.state.path', 'ecom/system/state.json'), '/'));
 
       return new FileStateStore($app->make(Filesystem::class), $path);
     });
