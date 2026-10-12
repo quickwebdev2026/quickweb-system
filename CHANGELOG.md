@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.0.3] - 2026-10-12
+
+### Changed
+- Allow illuminate components `^11|^12|^13` for Laravel 13 support.
+
+
 All notable changes to this project will be documented in this file.
 
 ## 0.0.2 - 2026-10-12
